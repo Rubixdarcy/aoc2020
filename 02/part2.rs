@@ -32,13 +32,10 @@ impl Policy {
     }
 
     fn validate(&self, pwd: &[u8]) -> bool {
-        let mut count: u32 = 0;
-        for c in pwd.iter() {
-            if *c == self.c {
-                count += 1;
-            }
-        }
-        return self.min <= count && count <= self.max;
+        let cmin = pwd[(self.min - 1) as usize];
+        let cmax = pwd[(self.max - 1) as usize];
+
+        return (cmin == self.c || cmax == self.c) && cmin != cmax;
     }
 }
 
