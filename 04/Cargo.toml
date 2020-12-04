@@ -1,0 +1,14 @@
+[package]
+name = "part2"
+version = "0.1.0"
+authors = ["Darcy Ryan <dryan@dgitsystems.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+regex="1"
+
+[[bin]]
+name = "part2"
+path = "part2.rs"
