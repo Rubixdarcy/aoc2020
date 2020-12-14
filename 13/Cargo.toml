@@ -1,0 +1,16 @@
+[package]
+name = "day13"
+version = "0.1.0"
+authors = ["Darcy Ryan <dryan@dgitsystems.com>"]
+edition = "2018"
+
+[dependencies]
+nom = "6"
+
+[[bin]]
+name = "part1"
+path = "part1.rs"
+
+[[bin]]
+name = "part2"
+path = "part2.rs"
