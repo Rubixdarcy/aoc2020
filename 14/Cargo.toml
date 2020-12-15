@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 nom = "6"
+itertools = "0.9.0"
 
 [[bin]]
 name = "part1"
