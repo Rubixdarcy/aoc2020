@@ -14,28 +14,31 @@ use nom::bytes::complete::{tag};
 // So k + t_0 = m_0 b_0, ..., k + t_n = m_n b_n
 
 fn main() {
-    let (earliest, schedule) = parse(include_str!("input.txt")).unwrap().1;
+    let (_earliest, schedule) = parse(include_str!("input.txt")).unwrap().1;
 
-    let mut n: i128 = 1;
-    for (i, entry) in schedule.iter().enumerate() {
-        let id = match entry { Entry::ID(id) => id, _ => continue };
-        println!("n={}, i={}, id={}", n, i, id);
-        let mut j: i128 = 1;
-        while (n * j + i as i128) % id != 0 {
-            //println!("    n * j + i = {}, % = {}", n * j + i as i128, n * j + i as i128 % id);
-            j += 1;
+    let id_offsets: Vec<(i128, i128)> = schedule.iter()
+        .copied()
+        .enumerate()
+        .filter_map(|(i, entry)| entry.id().map(|id| (id, i as i128)))
+        .collect();
+
+    let mut earliest: i128 = 0;
+    let mut frequency: i128 = 1;
+
+    for (id, offset) in id_offsets {
+        // Shift the earliest departure forward by increments of `offset`
+        // until the current bus arrives at the desired time.
+        while (earliest + offset) % id != 0 {
+            earliest += frequency;
         }
-        println!("    j={}", j);
-        n *= j;
+        // Update the frequency to ensure the current bus always arrives at the
+        // correct time in future iterations. The new frequency should be the
+        // lowest common multiple of the ID and the old frequency. Since the
+        // IDs are all prime, just multiplying will suffice.
+        frequency *= id;
     }
 
-    //let (bus, wait) = schedule.iter()
-    //    .filter_map(Entry::id)
-    //    .map(|bus| (bus, (((earliest * -1) % bus) + bus) % bus))
-    //    .min_by_key(|(_bus, wait)| *wait)
-    //    .unwrap();
-
-    println!("{}", n);
+    println!("{}", earliest);
 }
 
 fn parse(i: &str) -> IResult<&str, (i128, Vec<Entry>)> {
@@ -53,10 +56,10 @@ enum Entry {
 }
 
 impl Entry {
-    fn id(&self) -> Option<i128>  {
+    fn id(self) -> Option<i128>  {
         match self {
             Entry::X => None,
-            Entry::ID(n) => Some(*n),
+            Entry::ID(n) => Some(n),
         }
     }
 }
