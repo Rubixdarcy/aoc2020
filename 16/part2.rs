@@ -9,49 +9,47 @@ use nom::{
 use std::collections::HashSet;
 
 const NNUMS: usize = 20;
-//const NNUMS: usize = 3;
 
 fn main() {
     let Input { fields, ticket, nearby_tickets } = Input::parse(include_str!("input.txt")).unwrap().1;
-    //let Input { fields, ticket, nearby_tickets } = Input::parse(include_str!("input-test.txt")).unwrap().1;
 
     let valid_tickets: Vec<Vec<u64>> = nearby_tickets.into_iter()
         .filter(|t| valid_ticket(t, &fields))
         .collect();
 
-    let elligible_fields: Vec<Vec<usize>> = (0..NNUMS)
+    let mut elligible_fields_ids: Vec<HashSet<usize>> = (0..NNUMS)
         .map(|i|
             fields.iter()
                 .enumerate()
-                .filter(|(j, f)| valid_field(f, valid_tickets.iter().map(|t| t[i])))
+                .filter(|(_j, f)| valid_field(f, valid_tickets.iter().map(|t| t[i])))
                 .map(|(j, _f)| j)
-                .collect::<Vec<usize>>()
+                .collect::<HashSet<usize>>()
         )
         .collect();
-
-    let mut ordered_fields: Vec<usize> = Vec::new();
-    let mut seen_fields: HashSet<usize> = HashSet::new();
-
-    for i in 0..NNUMS {
-        let fields_i = elligible_fields.iter().find(|v| v.len() == i + 1).unwrap();
-        for field in fields_i.iter().cloned() {
-            if !seen_fields.contains(&field) {
-                ordered_fields.push(field);
-                seen_fields.insert(field);
-                break;
-            }
-        }
-    }
     
-    println!("Field ids: {:?}", ordered_fields);
+    let mut ordered_fields: [usize; NNUMS] = [0; NNUMS];
+
+    for _ in 0..NNUMS {
+        let (column_id, field_id) = elligible_fields_ids.iter()
+            .enumerate()
+            .filter(|(_i, ids)| ids.len() == 1)
+            .map(|(i, ids)| (i, ids.iter().next().unwrap().clone()))
+            .next()
+            .unwrap();
+            ordered_fields[column_id] = field_id;
+        elligible_fields_ids.iter_mut().for_each(|ids| { ids.remove(&field_id); })
+    }
+
+    // Verify solution
+    for (i, &field_id) in ordered_fields.iter().enumerate() {
+        assert!(valid_field(&fields[field_id], valid_tickets.iter().map(|t| t[i])));
+    }
 
     let result = ticket.iter()
         .cloned()
         .enumerate()
         .map(|(j, v)| (fields[ordered_fields[j]].name, v))
-        .inspect(|x| println!("{:?}", x))
-        .filter(|(name, v)| name.starts_with("departure"))
-        .inspect(|x| println!("Only using: {:?}", x))
+        .filter(|(name, _v)| name.starts_with("departure"))
         .map(|(_name, v)| v)
         .product::<u64>();
     println!("{}", result);
